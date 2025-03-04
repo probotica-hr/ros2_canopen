@@ -45,10 +45,17 @@ void NodeCanopen402Driver<rclcpp::Node>::init(bool called_from_base)
   NodeCanopenProxyDriver<rclcpp::Node>::init(false);
   publish_joint_state =
     this->node_->create_publisher<sensor_msgs::msg::JointState>("~/joint_states", 1);
+
   handle_init_service = this->node_->create_service<std_srvs::srv::Trigger>(
     std::string(this->node_->get_name()).append("/init").c_str(),
     std::bind(
       &NodeCanopen402Driver<rclcpp::Node>::handle_init, this, std::placeholders::_1,
+      std::placeholders::_2));
+
+  handle_init_no_homing_service = this->node_->create_service<std_srvs::srv::Trigger>(
+    std::string(this->node_->get_name()).append("/init_no_homing").c_str(),
+    std::bind(
+      &NodeCanopen402Driver<rclcpp::Node>::handle_init_no_homing, this, std::placeholders::_1,
       std::placeholders::_2));
 
   handle_halt_service = this->node_->create_service<std_srvs::srv::Trigger>(
@@ -124,6 +131,12 @@ void NodeCanopen402Driver<rclcpp_lifecycle::LifecycleNode>::init(bool called_fro
     std::bind(
       &NodeCanopen402Driver<rclcpp_lifecycle::LifecycleNode>::handle_init, this,
       std::placeholders::_1, std::placeholders::_2));
+
+  handle_init_no_homing_service = this->node_->create_service<std_srvs::srv::Trigger>(
+    std::string(this->node_->get_name()).append("/init_no_homing").c_str(),
+    std::bind(
+      &NodeCanopen402Driver<rclcpp_lifecycle::LifecycleNode>::handle_init_no_homing, this, std::placeholders::_1,
+      std::placeholders::_2));
 
   handle_halt_service = this->node_->create_service<std_srvs::srv::Trigger>(
     std::string(this->node_->get_name()).append("/halt").c_str(),
@@ -398,6 +411,19 @@ void NodeCanopen402Driver<NODETYPE>::handle_init(
     response->success = temp;
   }
 }
+
+template <class NODETYPE>
+void NodeCanopen402Driver<NODETYPE>::handle_init_no_homing(
+  const std_srvs::srv::Trigger::Request::SharedPtr request,
+  std_srvs::srv::Trigger::Response::SharedPtr response)
+{
+  if (this->activated_.load())
+  {
+    bool temp = motor_->handleInit_no_homing();
+    response->success = temp;
+  }
+}
+
 template <class NODETYPE>
 void NodeCanopen402Driver<NODETYPE>::handle_recover(
   const std_srvs::srv::Trigger::Request::SharedPtr request,

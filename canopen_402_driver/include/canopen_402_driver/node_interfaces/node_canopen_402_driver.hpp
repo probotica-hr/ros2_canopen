@@ -42,6 +42,7 @@ protected:
   std::shared_ptr<Motor402> motor_;
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr handle_init_service;
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr handle_init_no_homing_service;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr handle_halt_service;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr handle_recover_service;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr handle_set_mode_position_service;
@@ -93,6 +94,19 @@ public:
    * @param [out] response
    */
   void handle_init(
+    const std_srvs::srv::Trigger::Request::SharedPtr request,
+    std_srvs::srv::Trigger::Response::SharedPtr response);
+
+  /**
+   * @brief Service Callback to initialise device
+   *
+   * Calls Motor402::handleInit function. Brings motor to enabled
+   * state and doesn't home it.
+   *
+   * @param [in] request
+   * @param [out] response
+   */
+  void handle_init_no_homing(
     const std_srvs::srv::Trigger::Request::SharedPtr request,
     std_srvs::srv::Trigger::Response::SharedPtr response);
 

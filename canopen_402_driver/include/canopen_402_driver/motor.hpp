@@ -90,6 +90,14 @@ public:
    */
   bool handleInit();
   /**
+   * @brief Initialise the drive
+   *
+   * This function initialises the drive. This means, it first
+   * attempts to bring the device to operational state (CIA402).
+   *
+   */
+  bool handleInit_no_homing();
+  /**
    * @brief Read objects of the drive
    *
    * This function should be called regularly. It reads the status word
