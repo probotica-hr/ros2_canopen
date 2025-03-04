@@ -12,9 +12,10 @@ ExternalProject_Add(upstr_lely_core_libraries    # Name for custom target
   BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/build
   GIT_REPOSITORY https://gitlab.com/lely_industries/lely-core.git
   GIT_TAG fb735b79cab5f0cdda45bc5087414d405ef8f3ab
+  UPDATE_DISCONNECTED TRUE
   TIMEOUT 60
-  #UPDATE step apply patch to fix dcf-tools install
-  UPDATE_COMMAND
+  #PATCH step apply patch to fix dcf-tools install
+  PATCH_COMMAND
   COMMAND git reset --hard
   COMMAND git apply --whitespace=fix --reject ${CMAKE_CURRENT_SOURCE_DIR}/patches/0001-Fix-dcf-tools.patch
   #CONFIGURE step execute autoreconf and configure
