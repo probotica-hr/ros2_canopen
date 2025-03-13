@@ -133,8 +133,8 @@ public:
         mapping.is_rpdo = true;
         mapping.is_tpdo = false;
         (*map)[tmpi][tmps] = mapping;
-        std::cout << "Found rpdo mapped object: index=" << std::hex << (int)tmpi
-                  << " subindex=" << (int)tmps << std::endl;
+        // std::cout << "Found rpdo mapped object: index=" << std::hex << (int)tmpi
+        //           << " subindex=" << (int)tmps << std::endl;
       }
     }
   }
@@ -164,8 +164,8 @@ public:
         mapping.is_rpdo = false;
         mapping.is_tpdo = true;
         (*map)[tmpi][tmps] = mapping;
-        std::cout << "Found tpdo mapped object: index=" << std::hex << (int)tmpi
-                  << " subindex=" << (int)tmps << std::endl;
+        // std::cout << "Found tpdo mapped object: index=" << std::hex << (int)tmpi
+        //           << " subindex=" << (int)tmps << std::endl;
       }
     }
   }

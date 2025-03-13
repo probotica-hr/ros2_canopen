@@ -273,8 +273,8 @@ void NodeCanopen402Driver<rclcpp_lifecycle::LifecycleNode>::configure(bool calle
     (int)ros2_canopen::State402::InternalState::Operation_Enable);
   RCLCPP_INFO(
     this->node_->get_logger(),
-    "scale_pos_to_dev_ %f\nscale_pos_from_dev_ %f\nscale_vel_to_dev_ %f\nscale_vel_from_dev_ "
-    "%f\noffset_pos_to_dev_ %f\noffset_pos_from_dev_ %f\n",
+    "scale_pos_to_dev_ = %f; scale_pos_from_dev_ = %f; scale_vel_to_dev_ = %f;"
+    "scale_vel_from_dev_ = %f; offset_pos_to_dev_ = %f; offset_pos_from_dev_ = %f",
     scale_pos_to_dev_, scale_pos_from_dev_, scale_vel_to_dev_, scale_vel_from_dev_,
     offset_pos_to_dev_, offset_pos_from_dev_);
 }
@@ -352,8 +352,8 @@ void NodeCanopen402Driver<rclcpp::Node>::configure(bool called_from_base)
     (int)ros2_canopen::State402::InternalState::Operation_Enable);
   RCLCPP_INFO(
     this->node_->get_logger(),
-    "scale_pos_to_dev_ %f\nscale_pos_from_dev_ %f\nscale_vel_to_dev_ %f\nscale_vel_from_dev_ "
-    "%f\noffset_pos_to_dev_ %f\noffset_pos_from_dev_ %f\n",
+    "scale_pos_to_dev_ = %f; scale_pos_from_dev_ = %f; scale_vel_to_dev_ = %f;"
+    "scale_vel_from_dev_ = %f; offset_pos_to_dev_ = %f; offset_pos_from_dev_ %f",
     scale_pos_to_dev_, scale_pos_from_dev_, scale_vel_to_dev_, scale_vel_from_dev_,
     offset_pos_to_dev_, offset_pos_from_dev_);
 }
