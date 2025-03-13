@@ -75,14 +75,29 @@ public:
   virtual void deactivate(bool called_from_base) override;
   virtual void add_to_master() override;
 
-  virtual double get_speed() { return motor_->get_speed() * scale_vel_from_dev_; }
+  virtual double get_speed()
+  {
+    if (this->activated_.load())
+      return motor_->get_speed() * scale_vel_from_dev_;
+    else
+      return 0.0;
+  }
 
   virtual double get_position()
   {
-    return motor_->get_position() * scale_pos_from_dev_ + offset_pos_from_dev_;
+    if (this->activated_.load())
+      return motor_->get_position() * scale_pos_from_dev_;
+    else
+      return 0;
   }
 
-  virtual uint16_t get_mode() { return motor_->getMode(); }
+  virtual uint16_t get_mode()
+  {
+    if (this->activated_.load())
+      return motor_->getMode();
+    else
+      return 0;
+  }
 
   /**
    * @brief Service Callback to initialise device

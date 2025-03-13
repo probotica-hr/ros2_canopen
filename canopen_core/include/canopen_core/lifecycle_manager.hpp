@@ -24,7 +24,7 @@
 #include "lifecycle_msgs/msg/transition.hpp"
 #include "lifecycle_msgs/srv/change_state.hpp"
 #include "lifecycle_msgs/srv/get_state.hpp"
-//#include "std_srvs/srv/trigger.hpp"
+#include "std_srvs/srv/trigger.hpp"
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
@@ -157,7 +157,15 @@ protected:
     remove_driver_client_;  ///< Service client object for removing a driver
 
   uint8_t master_id_;           ///< Stores master id
+
+  /// Master Reset service client
+  rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr master_reset_client_;
+
   std::string container_name_;  ///< Stores name of the associated device_container
+
+  /// Container init_driver service client
+  rclcpp::Client<canopen_interfaces::srv::CONode>::SharedPtr
+  container_init_driver_client_;
 
 protected:
   template <typename FutureT, typename WaitTimeT>
@@ -246,18 +254,30 @@ protected:
   virtual bool bring_down_master();
 
   /**
-   * @brief Brings up the drivers with specified node_id
+   * @brief Brings up the drivers with specified node_id to inactive state
    *
    * This function bringsup the CANopen driver for the device with the specified
-   * node_id. The driver is transitioned twice,
-   * first the configure transition is triggered. Once the transition is successfully
-   * finished, the activate transition is triggered.
+   * node_id. The driver is transitioned to inactive state with the configure
+   * transition.
    *
    * @param device_name
    * @return true
    * @return false
    */
-  virtual bool bring_up_driver(std::string device_name);
+  virtual bool bring_up_driver_configure(std::string device_name);
+
+  /**
+   * @brief Brings up the drivers with specified node_id to active state
+   *
+   * This function bringsup the CANopen driver for the device with the specified
+   * node_id. The driver is transitioned to active state with the activate
+   * transition.
+   *
+   * @param device_name
+   * @return true
+   * @return false
+   */
+  virtual bool bring_up_driver_activate(std::string device_name);
 
   /**
    * @brief Brings down the driver with specified node_id
@@ -283,6 +303,10 @@ protected:
    * @return false
    */
   virtual bool load_from_config();
+
+  virtual bool container_init_driver(uint8_t node_id, std::chrono::seconds time_out);
+
+  virtual bool master_reset(std::chrono::seconds time_out);
 };
 }  // namespace ros2_canopen
 

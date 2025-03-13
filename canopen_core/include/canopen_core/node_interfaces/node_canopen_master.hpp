@@ -225,7 +225,6 @@ public:
       throw MasterException("Activate: master not set");
     }
     this->master_set_.store(true);
-    this->master_->Reset();
     this->spinner_ = std::thread(
       [this]()
       {
@@ -242,6 +241,7 @@ public:
     this->activated_.store(true);
     RCLCPP_DEBUG(this->node_->get_logger(), "NodeCanopenMaster activate end");
   }
+
   /**
    * @brief Activate hook for derived classes
    *

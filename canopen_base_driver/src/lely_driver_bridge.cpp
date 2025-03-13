@@ -105,10 +105,14 @@ void LelyDriverBridge::OnBoot(canopen::NmtState st, char es, const ::std::string
   {
     booted.store(true);
   }
-  std::lock_guard<std::mutex> lck(boot_mtex);
-  this->boot_state = st;
-  this->boot_status = es;
-  this->boot_what = what;
+
+  {
+    std::lock_guard<std::mutex> lck(boot_mtex);
+    this->boot_state = st;
+    this->boot_status = es;
+    this->boot_what = what;
+  }
+
   boot_cond.notify_all();
 }
 

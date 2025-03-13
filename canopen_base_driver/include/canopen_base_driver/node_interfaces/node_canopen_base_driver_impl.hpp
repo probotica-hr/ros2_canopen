@@ -190,6 +190,20 @@ void NodeCanopenBaseDriver<rclcpp::Node>::configure(bool called_from_base)
 template <class NODETYPE>
 void NodeCanopenBaseDriver<NODETYPE>::activate(bool called_from_base)
 {
+  if (!this->lely_driver_->IsReady())
+  {
+    RCLCPP_WARN(this->node_->get_logger(), "Wait for device to boot.");
+    try
+    {
+      this->lely_driver_->wait_for_boot();
+    }
+    catch (const std::exception & e)
+    {
+      RCLCPP_ERROR(this->node_->get_logger(), e.what());
+    }
+  }
+  RCLCPP_INFO(this->node_->get_logger(), "Driver booted and ready.");
+
   nmt_state_publisher_thread_ =
     std::thread(std::bind(&NodeCanopenBaseDriver<NODETYPE>::nmt_listener, this));
   emcy_queue_ = this->lely_driver_->get_emcy_queue();
@@ -242,6 +256,14 @@ void NodeCanopenBaseDriver<NODETYPE>::shutdown(bool called_from_base)
 }
 
 template <class NODETYPE>
+void NodeCanopenBaseDriver<NODETYPE>::set_master(
+  std::shared_ptr<lely::ev::Executor> exec, std::shared_ptr<lely::canopen::AsyncMaster> master)
+{
+  NodeCanopenDriver<NODETYPE>::set_master(exec, master);
+  add_to_master();
+}
+
+template <class NODETYPE>
 void NodeCanopenBaseDriver<NODETYPE>::add_to_master()
 {
   RCLCPP_INFO(this->node_->get_logger(), "eds file %s", this->eds_.c_str());
@@ -253,11 +275,10 @@ void NodeCanopenBaseDriver<NODETYPE>::add_to_master()
     [this, prom]()
     {
       std::scoped_lock<std::mutex> lock(this->driver_mutex_);
-      this->lely_driver_ = std::make_shared<ros2_canopen::LelyDriverBridge>(
+      auto lely_driver = std::make_shared<ros2_canopen::LelyDriverBridge>(
         *(this->exec_), *(this->master_), this->node_id_, this->node_->get_name(), this->eds_,
         this->bin_, std::chrono::milliseconds(this->sdo_timeout_ms_));
-      this->driver_ = std::static_pointer_cast<lely::canopen::BasicDriver>(this->lely_driver_);
-      prom->set_value(lely_driver_);
+      prom->set_value(lely_driver);
     });
 
   auto future_status = f.wait_for(this->non_transmit_timeout_);
@@ -266,21 +287,9 @@ void NodeCanopenBaseDriver<NODETYPE>::add_to_master()
     RCLCPP_ERROR(this->node_->get_logger(), "Adding timed out.");
     throw DriverException("add_to_master: adding timed out");
   }
+
   this->lely_driver_ = f.get();
   this->driver_ = std::static_pointer_cast<lely::canopen::BasicDriver>(this->lely_driver_);
-  if (!this->lely_driver_->IsReady())
-  {
-    RCLCPP_WARN(this->node_->get_logger(), "Wait for device to boot.");
-    try
-    {
-      this->lely_driver_->wait_for_boot();
-    }
-    catch (const std::exception & e)
-    {
-      RCLCPP_ERROR(this->node_->get_logger(), e.what());
-    }
-  }
-  RCLCPP_INFO(this->node_->get_logger(), "Driver booted and ready.");
 
   if (diagnostic_enabled_.load())
   {

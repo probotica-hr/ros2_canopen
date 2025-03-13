@@ -25,7 +25,7 @@ void DeviceContainer::set_executor(const std::weak_ptr<rclcpp::Executor> executo
 
 bool DeviceContainer::init_driver(uint16_t node_id)
 {
-  RCLCPP_DEBUG(this->get_logger(), "init_driver");
+  RCLCPP_DEBUG(this->get_logger(), "init_driver (id: %d)", node_id);
   registered_drivers_[node_id]->set_master(
     this->can_master_->get_executor(), this->can_master_->get_master());
   return true;
@@ -336,6 +336,17 @@ bool DeviceContainer::load_manager()
     rclcpp::Parameter container_name("container_name", this->get_fully_qualified_name());
     std::vector<rclcpp::Parameter> params;
     params.push_back(container_name);
+
+    std::vector<std::string> remap_rules;
+    std::string ns = this->get_namespace();
+    if (!ns.empty())
+    {
+      remap_rules.push_back("--ros-args");
+      remap_rules.push_back("-r");
+      remap_rules.push_back("__ns:=" + ns);
+    }
+
+    node_options.arguments(remap_rules);
     node_options.parameter_overrides(params);
 
     // Instantiate Manager

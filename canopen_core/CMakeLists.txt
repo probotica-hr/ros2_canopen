@@ -26,6 +26,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(yaml_cpp_vendor REQUIRED)
+find_package(std_srvs REQUIRED)
 include(ConfigExtras.cmake)
 
 set(dependencies
@@ -36,6 +37,7 @@ set(dependencies
   rclcpp_components
   rclcpp_lifecycle
   yaml_cpp_vendor
+  std_srvs
   Boost
 )
 
@@ -103,6 +105,7 @@ ament_target_dependencies(device_container
   yaml_cpp_vendor
   canopen_interfaces
   rclcpp_components
+  std_srvs
 )
 target_link_libraries(device_container
   node_canopen_master

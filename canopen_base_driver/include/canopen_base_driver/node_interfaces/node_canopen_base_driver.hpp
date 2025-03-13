@@ -88,6 +88,9 @@ public:
     }
   }
 
+  virtual void set_master(
+    std::shared_ptr<lely::ev::Executor> exec, std::shared_ptr<lely::canopen::AsyncMaster> master) override;
+
   virtual void init(bool called_from_base);
 
   virtual void configure(bool called_from_base);

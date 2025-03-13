@@ -28,6 +28,16 @@ LifecycleManager::on_configure(const rclcpp_lifecycle::State & state)
     RCLCPP_ERROR(this->get_logger(), "Failed to load from config");
     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
   }
+
+  this->master_reset_client_ = this->create_client<std_srvs::srv::Trigger>(
+    "master/reset", rclcpp::QoS(10), cbg_clients
+  );
+
+  this->container_init_driver_client_ = 
+    this->create_client<canopen_interfaces::srv::CONode>(
+      this->container_name_ + "/init_driver", rclcpp::QoS(10), cbg_clients
+  );
+
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 
@@ -210,10 +220,10 @@ bool LifecycleManager::bring_down_master()
   return true;
 }
 
-bool LifecycleManager::bring_up_driver(std::string device_name)
+bool LifecycleManager::bring_up_driver_configure(std::string device_name)
 {
   auto node_id = this->device_names_to_ids[device_name];
-  RCLCPP_DEBUG(this->get_logger(), "Bringing up %s with id %u", device_name.c_str(), node_id);
+  RCLCPP_DEBUG(this->get_logger(), "Configure %s with id %u", device_name.c_str(), node_id);
   auto master_state = this->get_state(master_id_, 3s);
   if (master_state != lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
   {
@@ -240,6 +250,31 @@ bool LifecycleManager::bring_up_driver(std::string device_name)
     return false;
   }
   RCLCPP_DEBUG(
+    this->get_logger(), "%s (node_id=%hu) has state inactive.",
+    device_name.c_str(), node_id);
+  return true;
+}
+
+bool LifecycleManager::bring_up_driver_activate(std::string device_name)
+{
+  auto node_id = this->device_names_to_ids[device_name];
+  RCLCPP_DEBUG(this->get_logger(), "Activate node %s with id %u", device_name.c_str(), node_id);
+  auto master_state = this->get_state(master_id_, 3s);
+  if (master_state != lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE)
+  {
+    RCLCPP_ERROR(
+      this->get_logger(), "Failed to bring up %s. Master not in active state.",
+      device_name.c_str());
+    return false;
+  }
+  auto state = this->get_state(node_id, 3s);
+  if (state != lifecycle_msgs::msg::State::PRIMARY_STATE_INACTIVE)
+  {
+    RCLCPP_ERROR(
+      this->get_logger(), "Failed to bring up %s. Not in inactive state.", device_name.c_str());
+    return false;
+  }
+  RCLCPP_DEBUG(
     this->get_logger(), "%s (node_id=%hu) has state inactive. Attempting to activate.",
     device_name.c_str(), node_id);
   if (!this->change_state(node_id, lifecycle_msgs::msg::Transition::TRANSITION_ACTIVATE, 3s))
@@ -250,7 +285,8 @@ bool LifecycleManager::bring_up_driver(std::string device_name)
     return false;
   }
   RCLCPP_DEBUG(
-    this->get_logger(), "%s (node_id=%hu) has state active.", device_name.c_str(), node_id);
+    this->get_logger(), "%s (node_id=%hu) has state active.",
+    device_name.c_str(), node_id);
   return true;
 }
 
@@ -270,22 +306,52 @@ bool LifecycleManager::bring_down_driver(std::string device_name)
 
 bool LifecycleManager::bring_up_all()
 {
+  RCLCPP_INFO(this->get_logger(), "Bring up master");
   if (!this->bring_up_master())
   {
     return false;
   }
+
   for (auto it = this->device_names_to_ids.begin(); it != this->device_names_to_ids.end(); ++it)
   {
     if (it->first.find("master") == std::string::npos)
     {
-      if (!this->bring_up_driver(it->first))
+      RCLCPP_INFO(this->get_logger(), "Configure %s", it->first.c_str());
+      if (!this->bring_up_driver_configure(it->first))
       {
         return false;
       }
     }
-    else
+  }
+
+  for (auto it = this->device_names_to_ids.begin(); it != this->device_names_to_ids.end(); ++it)
+  {
+    if (it->first.find("master") == std::string::npos)
     {
-      RCLCPP_DEBUG(this->get_logger(), "Skipped master.");
+      RCLCPP_INFO(this->get_logger(), "Init driver: %s (nodeid=0x%X)",
+          it->first.c_str(), it->second);
+      if (!this->container_init_driver(it->second, 3s))
+      {
+        return false;
+      }
+    }
+  }
+
+  RCLCPP_INFO(this->get_logger(), "Master reset");
+  if (!this->master_reset(3s))
+  {
+    return false;
+  }
+
+  for (auto it = this->device_names_to_ids.begin(); it != this->device_names_to_ids.end(); ++it)
+  {
+    if (it->first.find("master") == std::string::npos)
+    {
+      RCLCPP_INFO(this->get_logger(), "Activate %s", it->first.c_str());
+      if (!this->bring_up_driver_activate(it->first))
+      {
+        return false;
+      }
     }
   }
   return true;
@@ -310,6 +376,73 @@ bool LifecycleManager::bring_down_all()
   }
 
   return true;
+}
+
+bool LifecycleManager::container_init_driver(uint8_t node_id, std::chrono::seconds time_out)
+{
+  auto request = std::make_shared<canopen_interfaces::srv::CONode::Request>();
+  request->nodeid = node_id;
+
+  if (!this->container_init_driver_client_->wait_for_service(time_out))
+  {
+    RCLCPP_ERROR(get_logger(), "Service %s is not available.",
+        this->container_init_driver_client_->get_service_name());
+    return false;
+  }
+
+  auto future_result =
+      this->container_init_driver_client_->async_send_request(request);
+
+  auto future_status = wait_for_result(future_result, time_out);
+
+  if (future_status != std::future_status::ready)
+  {
+    RCLCPP_ERROR(get_logger(), "Server time out while calling %s (nodeid=0x%X)",
+        this->container_init_driver_client_->get_service_name(),
+        node_id);
+    return false;
+  }
+
+  if (future_result.get()->success)
+  {
+    return true;
+  }
+
+  RCLCPP_WARN(get_logger(),
+      "Failed to init_driver for node 0x%X", node_id);
+  return false;
+}
+
+bool LifecycleManager::master_reset(std::chrono::seconds time_out)
+{
+  auto request = std::make_shared<std_srvs::srv::Trigger::Request>();
+
+  if (!this->master_reset_client_->wait_for_service(time_out))
+  {
+    RCLCPP_ERROR(get_logger(), "Service %s is not available.",
+        this->master_reset_client_->get_service_name());
+    return false;
+  }
+
+  auto future_result = this->master_reset_client_->async_send_request(request);
+
+  auto future_status = wait_for_result(future_result, time_out);
+
+  if (future_status != std::future_status::ready)
+  {
+    RCLCPP_ERROR(get_logger(), "Server time out while calling %s",
+        this->master_reset_client_->get_service_name());
+    return false;
+  }
+
+  if (future_result.get()->success)
+  {
+    return true;
+  }
+
+  RCLCPP_WARN(get_logger(), "Failed to call %s",
+      this->master_reset_client_->get_service_name());
+  return false;
 }
 
 }  // namespace ros2_canopen
