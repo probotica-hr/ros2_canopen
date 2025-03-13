@@ -25,7 +25,7 @@
 #ifndef CANOPEN_ROS2_CONTROL__CIA402_SYSTEM_HPP_
 #define CANOPEN_ROS2_CONTROL__CIA402_SYSTEM_HPP_
 
-#include "canopen_402_driver/cia402_driver.hpp"
+#include "canopen_core/cia402_driver_interface.hpp"
 #include "canopen_ros2_control/canopen_system.hpp"
 
 constexpr double kResponseOk = 1.0;
@@ -116,13 +116,13 @@ protected:
   std::map<uint, MotorNodeData> motor_data_;
 
 private:
-  void switchModes(uint id, const std::shared_ptr<ros2_canopen::Cia402Driver> & driver);
+  void switchModes(uint id, const std::shared_ptr<ros2_canopen::Cia402DriverInterface> & driver);
 
-  void handleInit(uint id, const std::shared_ptr<ros2_canopen::Cia402Driver> & driver);
+  void handleInit(uint id, const std::shared_ptr<ros2_canopen::Cia402DriverInterface> & driver);
 
-  void handleRecover(uint id, const std::shared_ptr<ros2_canopen::Cia402Driver> & driver);
+  void handleRecover(uint id, const std::shared_ptr<ros2_canopen::Cia402DriverInterface> & driver);
 
-  void handleHalt(uint id, const std::shared_ptr<ros2_canopen::Cia402Driver> & driver);
+  void handleHalt(uint id, const std::shared_ptr<ros2_canopen::Cia402DriverInterface> & driver);
 
   void initDeviceContainer();
 };

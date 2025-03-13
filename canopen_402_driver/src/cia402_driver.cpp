@@ -18,7 +18,7 @@
 
 using namespace ros2_canopen;
 
-Cia402Driver::Cia402Driver(rclcpp::NodeOptions node_options) : CanopenDriver(node_options)
+Cia402Driver::Cia402Driver(rclcpp::NodeOptions node_options) : Cia402DriverBase(node_options)
 {
   node_canopen_402_driver_ =
     std::make_shared<node_interfaces::NodeCanopen402Driver<rclcpp::Node>>(this);

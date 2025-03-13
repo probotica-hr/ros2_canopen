@@ -18,72 +18,80 @@
 #define CANOPEN_402_DRIVER__402_DRIVER_HPP_
 #include "canopen_402_driver/node_interfaces/node_canopen_402_driver.hpp"
 #include "canopen_core/driver_node.hpp"
+#include "canopen_core/cia402_driver_interface.hpp"
 
 namespace ros2_canopen
 {
+
+class Cia402DriverBase : public ros2_canopen::CanopenDriver, public ros2_canopen::Cia402DriverInterface
+{
+public:
+  Cia402DriverBase(rclcpp::NodeOptions node_options) : CanopenDriver(node_options) { };
+};
+
 /**
  * @brief Abstract Class for a CANopen Device Node
  *
  * This class provides the base functionality for creating a
  * CANopen device node. It provides callbacks for nmt and rpdo.
  */
-class Cia402Driver : public ros2_canopen::CanopenDriver
+class Cia402Driver : public Cia402DriverBase
 {
   std::shared_ptr<node_interfaces::NodeCanopen402Driver<rclcpp::Node>> node_canopen_402_driver_;
 
 public:
   Cia402Driver(rclcpp::NodeOptions node_options = rclcpp::NodeOptions());
 
-  virtual bool reset_node_nmt_command()
+  virtual bool reset_node_nmt_command() override
   {
     return node_canopen_402_driver_->reset_node_nmt_command();
   }
 
-  virtual bool start_node_nmt_command()
+  virtual bool start_node_nmt_command() override
   {
     return node_canopen_402_driver_->start_node_nmt_command();
   }
 
-  virtual bool tpdo_transmit(ros2_canopen::COData & data)
+  virtual bool tpdo_transmit(ros2_canopen::COData & data) override
   {
     return node_canopen_402_driver_->tpdo_transmit(data);
   }
 
-  virtual bool sdo_write(ros2_canopen::COData & data)
+  virtual bool sdo_write(ros2_canopen::COData & data) override
   {
     return node_canopen_402_driver_->sdo_write(data);
   }
 
-  virtual bool sdo_read(ros2_canopen::COData & data)
+  virtual bool sdo_read(ros2_canopen::COData & data) override
   {
     return node_canopen_402_driver_->sdo_read(data);
   }
 
-  void register_nmt_state_cb(std::function<void(canopen::NmtState, uint8_t)> nmt_state_cb)
+  virtual void register_nmt_state_cb(std::function<void(canopen::NmtState, uint8_t)> nmt_state_cb) override
   {
     node_canopen_402_driver_->register_nmt_state_cb(nmt_state_cb);
   }
 
-  void register_rpdo_cb(std::function<void(COData, uint8_t)> rpdo_cb)
+  virtual void register_rpdo_cb(std::function<void(COData, uint8_t)> rpdo_cb) override
   {
     node_canopen_402_driver_->register_rpdo_cb(rpdo_cb);
   }
 
-  double get_speed() { return node_canopen_402_driver_->get_speed(); }
+  virtual double get_speed() override { return node_canopen_402_driver_->get_speed(); }
 
-  double get_position() { return node_canopen_402_driver_->get_position(); }
+  virtual double get_position() override { return node_canopen_402_driver_->get_position(); }
 
-  bool set_target(double target) { return node_canopen_402_driver_->set_target(target); }
+  virtual bool set_target(double target) override { return node_canopen_402_driver_->set_target(target); }
 
-  bool init_motor() { return node_canopen_402_driver_->init_motor(); }
+  virtual bool init_motor() override { return node_canopen_402_driver_->init_motor(); }
 
-  bool recover_motor() { return node_canopen_402_driver_->recover_motor(); }
+  virtual bool recover_motor() override { return node_canopen_402_driver_->recover_motor(); }
 
-  bool halt_motor() { return node_canopen_402_driver_->halt_motor(); }
+  virtual bool halt_motor() override { return node_canopen_402_driver_->halt_motor(); }
 
-  uint16_t get_mode() { return node_canopen_402_driver_->get_mode(); }
+  virtual uint16_t get_mode() override { return node_canopen_402_driver_->get_mode(); }
 
-  bool set_operation_mode(uint16_t mode)
+  virtual bool set_operation_mode(uint16_t mode) override
   {
     return node_canopen_402_driver_->set_operation_mode(mode);
   }

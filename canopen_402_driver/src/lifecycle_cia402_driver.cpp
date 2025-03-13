@@ -19,7 +19,7 @@
 using namespace ros2_canopen;
 
 LifecycleCia402Driver::LifecycleCia402Driver(rclcpp::NodeOptions node_options)
-: LifecycleCanopenDriver(node_options)
+: LifecycleCia402DriverBase(node_options)
 {
   node_canopen_402_driver_ =
     std::make_shared<node_interfaces::NodeCanopen402Driver<rclcpp_lifecycle::LifecycleNode>>(this);
