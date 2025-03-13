@@ -8,6 +8,7 @@ endif()
 # find dependencies
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   canopen_402_driver
+  canopen_master_driver
   canopen_core
   canopen_proxy_driver
   hardware_interface
