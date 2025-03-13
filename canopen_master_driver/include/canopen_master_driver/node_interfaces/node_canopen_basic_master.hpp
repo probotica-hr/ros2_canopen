@@ -20,6 +20,7 @@
 #include "canopen_interfaces/srv/co_read_id.hpp"
 #include "canopen_interfaces/srv/co_write_id.hpp"
 #include "canopen_master_driver/lely_master_bridge.hpp"
+#include "std_srvs/srv/trigger.hpp"
 
 namespace ros2_canopen
 {
@@ -37,6 +38,7 @@ protected:
   std::shared_ptr<LelyMasterBridge> master_bridge_;
   rclcpp::Service<canopen_interfaces::srv::COReadID>::SharedPtr sdo_read_service;
   rclcpp::Service<canopen_interfaces::srv::COWriteID>::SharedPtr sdo_write_service;
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr reset_service;
 
 public:
   NodeCanopenBasicMaster(NODETYPE * node)
@@ -78,6 +80,10 @@ public:
   void on_sdo_write(
     const std::shared_ptr<canopen_interfaces::srv::COWriteID::Request> request,
     std::shared_ptr<canopen_interfaces::srv::COWriteID::Response> response);
+
+  void on_reset(
+    const std_srvs::srv::Trigger::Request::SharedPtr request,
+    std_srvs::srv::Trigger::Response::SharedPtr response);
 };
 }  // namespace node_interfaces
 }  // namespace ros2_canopen

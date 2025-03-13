@@ -99,6 +99,42 @@ void NodeCanopenBasicMaster<NODETYPE>::on_sdo_write(
   }
 }
 
+template <class NODETYPE>
+void NodeCanopenBasicMaster<NODETYPE>::on_reset(
+  const std_srvs::srv::Trigger::Request::SharedPtr request,
+  std_srvs::srv::Trigger::Response::SharedPtr response)
+{
+  // response->success = reset_node_nmt_command();
+  if (this->activated_.load())
+  {
+    std::shared_ptr<std::promise<void>> prom = std::make_shared<std::promise<void>>();
+    auto future = prom->get_future();
+    this->exec_->post(
+      [this, prom]()
+      {
+        this->master_->Reset();
+        prom->set_value();
+      });
+
+    if (future.wait_for(this->non_transmit_timeout_) != std::future_status::ready)
+    {
+      response->success = false;
+      response->message = "Timeout while resetting master.";
+    }
+    else
+    {
+      response->success = true;
+    }
+  }
+  else
+  {
+    RCLCPP_ERROR(
+      this->node_->get_logger(), "Master is not in active state. NMT Reset service is not available.");
+    response->success = false;
+    response->message = "Master is not in active state. NMT Reset service is not available.";
+  }
+}
+
 template <>
 void NodeCanopenBasicMaster<rclcpp::Node>::init(bool called_from_base)
 {
@@ -113,6 +149,12 @@ void NodeCanopenBasicMaster<rclcpp::Node>::init(bool called_from_base)
     std::string(this->node_->get_name()).append("/sdo_write").c_str(),
     std::bind(
       &ros2_canopen::node_interfaces::NodeCanopenBasicMaster<rclcpp::Node>::on_sdo_write, this,
+      std::placeholders::_1, std::placeholders::_2));
+
+  reset_service = this->node_->create_service<std_srvs::srv::Trigger>(
+    std::string(this->node_->get_name()).append("/reset").c_str(),
+    std::bind(
+      &NodeCanopenBasicMaster<rclcpp::Node>::on_reset, this,
       std::placeholders::_1, std::placeholders::_2));
 }
 
@@ -133,6 +175,12 @@ void NodeCanopenBasicMaster<rclcpp_lifecycle::LifecycleNode>::init(bool called_f
       &ros2_canopen::node_interfaces::NodeCanopenBasicMaster<
         rclcpp_lifecycle::LifecycleNode>::on_sdo_write,
       this, std::placeholders::_1, std::placeholders::_2));
+
+  reset_service = this->node_->create_service<std_srvs::srv::Trigger>(
+      std::string(this->node_->get_name()).append("/reset").c_str(),
+      std::bind(
+        &NodeCanopenBasicMaster<rclcpp_lifecycle::LifecycleNode>::on_reset, this,
+        std::placeholders::_1, std::placeholders::_2));
 }
 
 #endif
