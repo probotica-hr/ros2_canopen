@@ -1,0 +1,22 @@
+diff --git a/python/dcf-tools/dcfgen/cli.py b/python/dcf-tools/dcfgen/cli.py
+index f487cfff..9fca7c93 100644
+--- a/python/dcf-tools/dcfgen/cli.py
++++ b/python/dcf-tools/dcfgen/cli.py
+@@ -86,9 +86,6 @@ class Slave(dcf.Device):
+             else:
+                 pdo.cob_id = int(cfg["cob_id"])
+ 
+-        if cob_id != pdo.cob_id | 0x80000000:
+-            sdo.append(self.concise_value(comm_idx, 1, pdo.cob_id | 0x80000000))
+-
+         if not (pdo.cob_id & 0x80000000):
+             if "transmission" in cfg:
+                 transmission = int(cfg["transmission"])
+@@ -125,6 +122,7 @@ class Slave(dcf.Device):
+                 if pdo.n > 0 or len(cfg["mapping"]) > 0:
+                     pdo.n = 0
+                     pdo.mapping = {}
++                    sdo.append(self.concise_value(comm_idx, 1, pdo.cob_id | 0x80000000))
+                     sdo.append(self.concise_value(map_idx, 0, 0))
+ 
+                 size = 0

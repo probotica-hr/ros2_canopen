@@ -343,6 +343,7 @@ bool LifecycleManager::bring_up_all()
     return false;
   }
 
+  RCLCPP_INFO(this->get_logger(), "Activate drivers");
   for (auto it = this->device_names_to_ids.begin(); it != this->device_names_to_ids.end(); ++it)
   {
     if (it->first.find("master") == std::string::npos)

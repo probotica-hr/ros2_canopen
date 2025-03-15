@@ -101,6 +101,13 @@ void LelyDriverBridge::OnState(canopen::NmtState state) noexcept
 void LelyDriverBridge::OnBoot(canopen::NmtState st, char es, const ::std::string & what) noexcept
 {
   FiberDriver::OnBoot(st, es, what);
+
+  std::cout << "(LelyDriverBridge::OnBoot) " << "id=" << (unsigned int)this->get_id()
+      << "; st=0x" << std::hex << std::setfill('0') << std::setw(2) << (unsigned int)st
+      << "; es=" << es
+      << "; what='" << what << "'"
+      << std::endl;
+
   if (es == 0)
   {
     booted.store(true);

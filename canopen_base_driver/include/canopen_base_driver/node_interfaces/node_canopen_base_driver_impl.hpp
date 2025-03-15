@@ -190,20 +190,6 @@ void NodeCanopenBaseDriver<rclcpp::Node>::configure(bool called_from_base)
 template <class NODETYPE>
 void NodeCanopenBaseDriver<NODETYPE>::activate(bool called_from_base)
 {
-  if (!this->lely_driver_->IsReady())
-  {
-    RCLCPP_WARN(this->node_->get_logger(), "Wait for device to boot.");
-    try
-    {
-      this->lely_driver_->wait_for_boot();
-    }
-    catch (const std::exception & e)
-    {
-      RCLCPP_ERROR(this->node_->get_logger(), e.what());
-    }
-  }
-  RCLCPP_INFO(this->node_->get_logger(), "Driver booted and ready.");
-
   nmt_state_publisher_thread_ =
     std::thread(std::bind(&NodeCanopenBaseDriver<NODETYPE>::nmt_listener, this));
   emcy_queue_ = this->lely_driver_->get_emcy_queue();
@@ -228,6 +214,20 @@ void NodeCanopenBaseDriver<NODETYPE>::activate(bool called_from_base)
     diagnostic_updater_->add(
       "diagnostic updater", this, &NodeCanopenBaseDriver<NODETYPE>::diagnostic_callback);
   }
+
+  if (!this->lely_driver_->is_booted())
+  {
+    RCLCPP_WARN(this->node_->get_logger(), "Wait for device to boot.");
+    try
+    {
+      this->lely_driver_->wait_for_boot();
+    }
+    catch (const std::exception & e)
+    {
+      RCLCPP_ERROR(this->node_->get_logger(), e.what());
+    }
+  }
+  RCLCPP_INFO(this->node_->get_logger(), "Driver booted and ready.");
 }
 
 template <class NODETYPE>
