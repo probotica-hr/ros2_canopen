@@ -86,7 +86,7 @@ public:
   virtual double get_position()
   {
     if (this->activated_.load())
-      return motor_->get_position() * scale_pos_from_dev_;
+      return motor_->get_position() * scale_pos_from_dev_ + offset_pos_from_dev_;
     else
       return 0;
   }
