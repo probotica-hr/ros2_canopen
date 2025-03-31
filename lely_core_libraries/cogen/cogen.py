@@ -15,7 +15,6 @@
 import yaml
 import argparse
 from dataclasses import dataclass
-from dcfgen.cli import Master, Slave
 
 
 def main():
@@ -26,10 +25,15 @@ def main():
     parser.add_argument(
         "--output-file", type=str, help="The name of the output file", required=True
     )
+    parser.add_argument(
+        "--dcf-path",
+        type=str,
+        help="Set YAML property options.dcf_path", required=False
+    )
     args = parser.parse_args()
 
     with open(args.input_file) as input:
-        cfg = yaml.load(input, yaml.FullLoader)
+        cfg = yaml.safe_load(input)
 
     master = {}
     if "master" not in cfg:
@@ -57,6 +61,9 @@ def main():
     for node_name in nodes:
         for entry_name in defaults:
             nodes[node_name][entry_name] = defaults[entry_name]
+
+    if args.dcf_path:
+        options['dcf_path'] = args.dcf_path
 
     modified_file = {}
     modified_file["options"] = options
