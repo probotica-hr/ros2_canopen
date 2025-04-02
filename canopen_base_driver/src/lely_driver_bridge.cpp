@@ -186,6 +186,19 @@ void LelyDriverBridge::OnEmcy(uint16_t eec, uint8_t er, uint8_t msef[5]) noexcep
   emcy.er = er;
   for (int i = 0; i < 5; i++) emcy.msef[i] = msef[i];
 
+  std::cout << "(LelyDriverBridge::OnEmcy) " << "id=" << (unsigned int)this->get_id()
+      << "; eec=0x" << std::hex << std::setfill('0') << std::setw(4) << eec
+      << "; er=0x" << std::hex << std::setfill('0') << std::setw(4) << er
+      << "; msef=";
+
+  for (int i = 0; i < 5; i++)
+  {
+    if (i) std::cout << " ";
+    std::cout << std::hex << std::setfill('0') << std::setw(2) << msef[i];
+  }
+
+  std::cout << std::endl;
+
   emcy_queue->push(emcy);
 }
 
