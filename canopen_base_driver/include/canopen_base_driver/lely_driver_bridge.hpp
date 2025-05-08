@@ -770,6 +770,21 @@ public:
       this->sdo_timeout);
   }
 
+  bool is_tpdo(uint16_t index, uint8_t subindex)
+  {
+    bool is_tpdo = false;
+    if (this->pdo_map_->find(index) != this->pdo_map_->end())
+    {
+      auto object = this->pdo_map_->at(index);
+      if (object.find(subindex) != object.end())
+      {
+        auto entry = object.at(subindex);
+        is_tpdo = entry.is_tpdo;
+      }
+    }
+    return is_tpdo;
+  }
+
   template <typename T>
   const T universal_get_value(uint16_t index, uint8_t subindex)
   {

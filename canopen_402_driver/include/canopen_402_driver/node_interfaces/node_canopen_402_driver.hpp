@@ -83,10 +83,26 @@ public:
       return 0.0;
   }
 
+  virtual double get_speed_avg()
+  {
+    if (this->activated_.load())
+      return motor_->get_speed_avg() * scale_vel_from_dev_;
+    else
+      return 0.0;
+  }
+
   virtual double get_position()
   {
     if (this->activated_.load())
       return motor_->get_position() * scale_pos_from_dev_ + offset_pos_from_dev_;
+    else
+      return 0;
+  }
+
+  virtual double get_current()
+  {
+    if (this->activated_.load())
+      return motor_->get_current() / 1000.0;
     else
       return 0;
   }

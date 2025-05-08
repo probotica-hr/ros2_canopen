@@ -389,7 +389,7 @@ void NodeCanopen402Driver<NODETYPE>::publish()
   js_msg.name.push_back(this->node_->get_name());
   js_msg.position.push_back(motor_->get_position() * scale_pos_from_dev_ + offset_pos_from_dev_);
   js_msg.velocity.push_back(motor_->get_speed() * scale_vel_from_dev_);
-  js_msg.effort.push_back(0.0);
+  js_msg.effort.push_back(motor_->get_current() / 1000.0);
   publish_joint_state->publish(js_msg);
 }
 

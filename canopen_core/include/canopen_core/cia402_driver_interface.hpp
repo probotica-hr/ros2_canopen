@@ -45,7 +45,11 @@ public:
 
   virtual double get_speed() = 0;
 
+  virtual double get_speed_avg() = 0;
+
   virtual double get_position() = 0;
+
+  virtual double get_current() = 0;
 
   virtual bool set_target(double target) = 0;
 

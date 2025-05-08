@@ -188,6 +188,26 @@ public:
     return (double)this->driver->universal_get_value<int32_t>(0x6064, 0);
   }
 
+  double get_current() const
+  {
+    double result = 0;
+    if (this->driver->is_tpdo(0x30D1, 1))
+    {
+      result = this->driver->universal_get_value<int32_t>(0x30D1, 1);
+    }
+    return result;
+  }
+
+  double get_speed_avg() const
+  {
+    double result = 0;
+    if (this->driver->is_tpdo(0x30D3, 1))
+    {
+      result = this->driver->universal_get_value<int32_t>(0x30D3, 1);
+    }
+    return result;
+  }
+
   void set_diagnostic_status_msgs(std::shared_ptr<DiagnosticsCollector> status, bool enable)
   {
     this->enable_diagnostics_.store(enable);

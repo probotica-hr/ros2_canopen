@@ -79,7 +79,11 @@ public:
 
   virtual double get_speed() override { return node_canopen_402_driver_->get_speed(); }
 
+  virtual double get_speed_avg() override { return node_canopen_402_driver_->get_speed_avg(); }
+
   virtual double get_position() override { return node_canopen_402_driver_->get_position(); }
+
+  virtual double get_current() override { return node_canopen_402_driver_->get_current(); }
 
   virtual bool set_target(double target) override { return node_canopen_402_driver_->set_target(target); }
 

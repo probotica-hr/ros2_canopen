@@ -45,6 +45,8 @@ struct Cia402Data
   // FROM MOTOR
   double actual_position = std::numeric_limits<double>::quiet_NaN();
   double actual_velocity = std::numeric_limits<double>::quiet_NaN();
+  double actual_velocity_avg = std::numeric_limits<double>::quiet_NaN();
+  double actual_current = std::numeric_limits<double>::quiet_NaN();
 
   // TO MOTOR
   double target_position = std::numeric_limits<double>::quiet_NaN();
@@ -107,6 +109,12 @@ struct Cia402Data
     // actual speed
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       joint_name, hardware_interface::HW_IF_VELOCITY, &actual_velocity));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+      joint_name, "velocity_avg", &actual_velocity_avg));
+
+    // actual effort
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+      joint_name, hardware_interface::HW_IF_CURRENT, &actual_current));
   }
 
   void export_command_interface(
@@ -144,6 +152,8 @@ struct Cia402Data
   {
     actual_position = driver->get_position();
     actual_velocity = driver->get_speed();
+    actual_velocity_avg = driver->get_speed_avg();
+    actual_current = driver->get_current();
   }
 
   void write_target()
