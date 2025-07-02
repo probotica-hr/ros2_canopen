@@ -208,6 +208,17 @@ public:
     return result;
   }
 
+  float get_analog_input() const
+  {
+    float result = 0;
+    if (this->driver->is_tpdo(0x3162, 1))
+    {
+      result = this->driver->universal_get_value<int16_t>(0x3162, 1);
+      result = result / 1000.0;
+    }
+    return result;
+  }
+
   void set_diagnostic_status_msgs(std::shared_ptr<DiagnosticsCollector> status, bool enable)
   {
     this->enable_diagnostics_.store(enable);

@@ -46,6 +46,9 @@ void NodeCanopen402Driver<rclcpp::Node>::init(bool called_from_base)
   publish_joint_state =
     this->node_->create_publisher<sensor_msgs::msg::JointState>("~/joint_states", 1);
 
+  publish_analog_input =
+    this->node_->create_publisher<std_msgs::msg::Float32>("~/analog_input", 1);
+
   handle_init_service = this->node_->create_service<std_srvs::srv::Trigger>(
     std::string(this->node_->get_name()).append("/init").c_str(),
     std::bind(
@@ -126,6 +129,10 @@ void NodeCanopen402Driver<rclcpp_lifecycle::LifecycleNode>::init(bool called_fro
   NodeCanopenProxyDriver<rclcpp_lifecycle::LifecycleNode>::init(false);
   publish_joint_state =
     this->node_->create_publisher<sensor_msgs::msg::JointState>("~/joint_states", 10);
+
+  publish_analog_input =
+    this->node_->create_publisher<std_msgs::msg::Float32>("~/analog_input", 10);
+
   handle_init_service = this->node_->create_service<std_srvs::srv::Trigger>(
     std::string(this->node_->get_name()).append("/init").c_str(),
     std::bind(
@@ -391,6 +398,10 @@ void NodeCanopen402Driver<NODETYPE>::publish()
   js_msg.velocity.push_back(motor_->get_speed() * scale_vel_from_dev_);
   js_msg.effort.push_back(motor_->get_current() / 1000.0);
   publish_joint_state->publish(js_msg);
+
+  std_msgs::msg::Float32 analog_input_msg;
+  analog_input_msg.data = motor_->get_analog_input();
+  publish_analog_input->publish(analog_input_msg);
 }
 
 template <class NODETYPE>
